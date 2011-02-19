@@ -42,10 +42,6 @@ os.chdir(os.path.dirname(os.path.realpath(sys.argv[0])))
 
 CONFIGURATION_FILE = './configuration/print_badge.config.json'
 
-# Shorthand for image positions.
-# B = Bottom, T = Top, L = Left, R = Right, X = x, Y = y
-(BL_X,BL_Y,BR_X,BR_Y,TL_X,TL_Y,TR_X,TR_Y) = (0,1,2,3,4,5,6,7)
-
 def print_image(file):
   print_file = 'lp -d DYMO_LabelWriter_400_USB_1 -o landscape -o fitplot'.split() + [file]
   # print_file = 'lp -H test -d DYMO_LabelWriter_400_USB_1 -o landscape -o fitplot'.split() + [file]
@@ -54,9 +50,27 @@ def print_image(file):
   if opts and '-n' in opts[0]:
     print "Not executing command:",print_file
   elif opts and '-q' in opts[0]:
-    subprocess.call(['qiv',file])
+    try:
+      subprocess.call(['qiv',file])
+    except:
+      print "can't find quick image viewer: apt-get install qiv"
   else:
     subprocess.call(print_file)
+
+
+# Shorthand for image positions.
+# B = Bottom, T = Top, L = Left, R = Right, X = x, Y = y
+(BL_X,BL_Y,BR_X,BR_Y,TL_X,TL_Y,TR_X,TR_Y) = (0,1,2,3,4,5,6,7)
+
+def get_ideal_text_size(im,width, height, font, text):
+  size = 100  # arbitrary initial value, scaled to fit below
+  p = im.get_bounding_rect(font,size, 0, (0,0), text)
+  return_size = size * min(
+    (float(width)  / float(p[BR_X] - p[BL_X])), # width ratio
+    (float(height) / float(p[BR_Y] - p[TR_Y]))  # height ratio
+    )
+  #print "\ntext:", text, "\nsize:", return_size
+  return return_size
 
 # Implement next:
 #   - Margins: top, bottom, left, right
@@ -71,23 +85,39 @@ def place(image,(x,y),item):
     if item[val]: input[val] = item[val]
 
   color = image.colorAllocate(item["color"])
-  im = gd.image((input["width"],input["height"]))
 
-  x,y = 0,0 # since we are making a temporary image, set these to origin
+  bb_wid=input["width"]
+  bb_ht=input["height"]
+  font=item["font"]
+  text=item["string"]
+  size = get_ideal_text_size(image,bb_wid,bb_ht,font,text)
 
-  # one pass calculation for ideal string size!
-  size = 100
-  p = im.get_bounding_rect(item["font"],size,0,(x,y),item["string"])
-  size = min(
-    (float(input["width"])  / float(p[BR_X] - p[BL_X]) ) * size, # width ratio
-    (float(input["height"]) / float(p[BR_Y] - p[TR_Y])) * size   # height ratio
-    )
-  p = im.get_bounding_rect(item["font"],size,0,(x,y),item["string"])
+  p = image.get_bounding_rect(font,size,0,(x,y),text)
   y += p[TR_Y]*-1
 
-  rv = image.string_ttf(item["font"],size,0,(input["x"],input["y"] + y),item["string"],color)
+  rv = image.string_ttf(font,size,0,(input["x"],input["y"] + y),text,color)
   return (input["x"],rv[BR_Y])
 
+def make_qrcode_png(qrfile, fname, lname, email, note):
+  #print "qrmake: %s %s %s %s %s" % (qrfile,fname,lname,email,note)
+  import vobject
+  j = vobject.vCard()
+  j.add('n')
+  j.n.value = vobject.vcard.Name(given=fname, family=lname)
+  j.add('fn')
+  j.fn.value = fname + " " + lname
+  j.add('email')
+  j.email.value = email
+  j.email.type_param = 'INTERNET'
+  j.add('note')
+  j.note.value = note
+
+  bad_text = j.serialize()
+  # android's barcode reader app doesn't like commas to be escaped
+  good_text = bad_text.replace("\\,", ",")
+
+  subprocess.call(['qrencode', '--size=2', '-m0', '-o', qrfile , good_text])
+  # print "bad text:", bad_text, "\n", "good text:", good_text
 
 def main():
   configuration_file = open(CONFIGURATION_FILE)
@@ -104,8 +134,19 @@ def main():
 
   conf["badge"]["file"] = ''.join(('./completed/',card["key"],"_shdh",card["shdh_number"],'.png'))
 
+  try:
+    qrfile = './completed/%(key)s_shdh%(shdh_number)s.qrcode.png' % card
+    make_qrcode_png(qrfile,
+                    card['first_name'],
+                    card['last_name'],
+                    card['key'],
+                    'met @ SHDH %(shdh_number)s -- %(tags)s' % card)
+    conf["qr_code"]["file"] = qrfile
+  except : print "oh well, no qr code...  try: 'apt-get install qrencode python-vobject' \n python says:", sys.exc_info()
+
+
   try: conf["badge"]["remove_accents"]
-  except NameError: conf["badge"]["remove_accents"] = None
+  except KeyError: conf["badge"]["remove_accents"] = None
 
   os.environ["GDFONTPATH"] = conf["badge"]["font_path"]
 
@@ -122,13 +163,24 @@ def main():
     try: conf[item]["file"]
     except KeyError: conf[item]["file"] = None
 
-    if conf[item]["string"]:
+    if conf[item]["file"]:
+      temporary = gd.image(conf[item]["file"])
+      ix,iy = conf[item]["x"],conf[item]["y"]
+      try:
+        iw,ih = conf[item]["width"],conf[item]["height"]
+        (tw,th) = temporary.size()
+        #### it would be better to preserve the aspect ratio
+        if (tw > iw) or (th > ih):
+          print "ooops, sloppy shrinking of image in progress..."
+          temporary.copyResizedTo(im,(ix, iy),(0,0),(iw,ih))
+        else:
+          temporary.copyTo(im,(ix+((iw-tw)/2),iy+((ih-th)/2)))
+      except KeyError:
+        temporary.copyTo(im,(ix,iy))
+    elif conf[item]["string"]:
       if conf["badge"]["remove_accents"]:
         conf[item]["string"] = unicodedata.normalize('NFKD', conf[item]["string"]).encode('ascii','ignore')
       (x,y) = place(im,(x,y),conf[item])
-    elif conf[item]["file"]:
-      temporary = gd.image(conf[item]["file"])
-      temporary.copyTo(im,(conf[item]["x"],conf[item]["y"]))
     else:
       print "ERROR"
 

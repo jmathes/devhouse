@@ -11,17 +11,12 @@
       "font_path" : "./configuration/fonts/",
       "remove_accents" : true,
       "color" : [255, 255, 255],
-      "design" : ["background","sponsor","shdh_number","first_name","last_name","tags"]
+      "design" : ["background", "qr_code", "sponsor", "shdh_number","first_name","last_name","tags"]
    },
    "background" : {
       "file" : "./configuration/background.png",
       "x" : 0,
       "y" : 0
-   },
-   "sponsor" : {
-      "file" : "./configuration/sponsor.png",
-      "x" : 390,
-      "y" : 344
    },
    "shdh_number" : {
       "height" : 110,
@@ -38,25 +33,40 @@
       "string" : "",
       "font" : "MyriadPro-Semibold.otf",
       "color" : [0, 0, 0],
-      "x" : 20,
+      "x" : 15,
       "y" : 70
    },
    "last_name" : {
       "height" : 60,
-      "width" : 570,
+      "width" : 400,
       "string" : "",
       "font" : "MyriadPro-Regular.otf",
       "color" : [0, 0, 0],
-      "x" : 30,
+      "x" : 15,
       "y" : null
    },
    "tags" : {
-      "height" : 35,
-      "width" : 590,
+      "height" : 144,
+      "width" : 450,
       "string" : "",
+      "wraplines" : 1,
       "font" : "MyriadPro-BoldCond.otf",
       "color" : [0, 0, 0],
-      "x" : 10,
-      "y" : 305
+      "x" : 15,
+      "y" : 300
+   },
+   "sponsor" : {
+      "file" : "./configuration/sponsor.png",
+      "height" : 74,
+      "width" : 130,
+      "x" : 460,
+      "y" : 240
+   },
+   "qr_code" : {
+      "string" : "",
+      "height" : 130,
+      "width" : 130,
+      "x" : 460,
+      "y" : 324
    }
 }
