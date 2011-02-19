@@ -49,7 +49,7 @@
       "height" : 144,
       "width" : 450,
       "string" : "",
-      "wraplines" : 1,
+      "wraptext" : 1,
       "font" : "MyriadPro-BoldCond.otf",
       "color" : [0, 0, 0],
       "x" : 15,

@@ -5,7 +5,7 @@
 {
   "first_name": "J Random",
   "last_name": "Hacker",
-  "tags": "Haskell",
+  "tags": "AppEngine",
   "shdh_number": "42",
   "key": "jrandom@gmail.com",
   "badge_icons": null,
@@ -18,7 +18,7 @@ END
 {
   "first_name": "J Random",
   "last_name": "Hacker",
-  "tags": "Python, Haskell",
+  "tags": "Haskell, ForGreatGood",
   "shdh_number": "42",
   "key": "jrandom@gmail.com",
   "badge_icons": null,

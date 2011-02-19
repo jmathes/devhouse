@@ -58,29 +58,19 @@ def print_image(file):
     subprocess.call(print_file)
 
 def wrapstring(string, nlines):
-
   if (nlines == 1):
      return string
-
-  # find index of middle of string
+  # find index of first wrapping point in string
   opt_wrap_pt = len(string)/nlines
-
-  #print 'len,wrap = ', len(string), ',', opt_wrap_pt
-  # get index of next space
-  try:
-    next_space = string.index(' ', opt_wrap_pt)
-    prev_space = string.rindex(' ', 0, opt_wrap_pt)
-  except ValueError:
-    return string    # this happens when there are no spaces either before or after the midpoint...this could be more robust.
-
-  #print 'n,p= ', next_space, ',', prev_space
-
+  prev_space = string.rfind(' ', 0, opt_wrap_pt)    # -1 if not found
+  next_space = string.find(' ', opt_wrap_pt)        # -1 if not found
   # choose the space that is closest to the optimal wrapping point
-  if (opt_wrap_pt - prev_space) < (next_space - opt_wrap_pt):
-    split_point = prev_space
-  else:
+  if (next_space > 0) and ((opt_wrap_pt - prev_space) > (next_space - opt_wrap_pt)):
     split_point = next_space
-
+  else:
+    split_point = prev_space
+  if split_point < 0:
+    return string
   ns = string[:split_point] + '\n' + wrapstring(string[split_point+1:], nlines - 1)
   #print nlines,':',ns,';'
   #print ns
@@ -105,11 +95,11 @@ def get_ideal_text_size(im,width, height, font, text):
 #   - Alignment: left, right, center
 def place(image,(x,y),item):
   input = {}
-  input['x'],input['y'],(input['width'],input['height']) = x,y,image.size()
+  input['x'],input['y'],input['wraptext'],(input['width'],input['height']) = x,y,0,image.size()
 
-  for val in ["x","y","width","height"]:
+  for val in ["x","y","width","height","wraptext"]:
     try: item[val]
-    except KeyError: pass
+    except KeyError: continue
     if item[val]: input[val] = item[val]
 
   color = image.colorAllocate(item["color"])
@@ -119,34 +109,31 @@ def place(image,(x,y),item):
   font=item["font"]
   text=item["string"]
 
-  best_size = -1
-  wraptext = "oh god how did this get here I am not good with computer"
-  size = 0
-  nlines = 1
-  best_sizes = []
-  wraptexts = []
-  ##LOOK HERE!!!!!!
-  while (best_size < size):
-    best_size = size
-    best_sizes.append(best_size)
-    wraptext = wrapstring(text,nlines)
-    wraptexts.append(wraptext)
-    nlines += 1
-    size = get_ideal_text_size(image, bb_wid, bb_ht, font, wraptext)
-    #print "best size:", best_size
-    #print "wraptext:", wraptext
-  #print "\nend of while loop"
-  #print "best_sizes list:\n", best_sizes
-  #print "wraptexts list:\n", wraptexts
-  #print "\nWHAT'S PASSED TO THE image.string_ttf() METHOD:"
-  #print "best_sizes[-1]:", best_sizes[-1]
-  #print "wraptexts[-2]:", wraptexts[-2]
-  # one pass calculation for ideal string size!
-  # used to be: p = image.get_bounding_rect(font, size, 0, (0,0), wraptext)
-  p = image.get_bounding_rect(font, size, 0, (0,0), wraptext)
+  if input['wraptext']:
+    best_size = -1
+    nlines = 1
+    # if the line of text is too wide, it'll be shrunk to fit.
+    # when we split it, the font size will increase until height
+    # becomes the dominating constraint, so we keep wrapping long as
+    # the font size keeps increasing
+    while 1:
+      wraptext = wrapstring(text,nlines)
+      size = get_ideal_text_size(image, bb_wid, bb_ht, font, wraptext)
+      if size <= best_size:
+        break
+      best_size = size
+      best_text = wraptext
+      nlines += 1
+
+    size = best_size
+    text = best_text
+  else:
+    size = get_ideal_text_size(image, bb_wid, bb_ht, font, text)
+
+  p = image.get_bounding_rect(font, size, 0, (0,0), text)
   y = p[TR_Y]*-1
 
-  rv = image.string_ttf(font,best_sizes[-1],0,(input["x"],input["y"] + y),wraptexts[-2],color)
+  rv = image.string_ttf(font,size,0,(input["x"],input["y"] + y),text,color)
   return (input["x"],rv[BR_Y])
 
 def make_qrcode_png(qrfile, fname, lname, email, note):
