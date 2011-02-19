@@ -32,7 +32,7 @@
 #   - Give helpful error messages when the configuration file is missing parts that we expect.
 #   - Add fancypants python documentation
 #   - Add a library or wrapper for CUPS, send the PNG directly to CUPS
-#   - Get the job ID from CUPS, wait for the CUPS job to complete before exiting, fail if the CUPS job fails 
+#   - Get the job ID from CUPS, wait for the CUPS job to complete before exiting, fail if the CUPS job fails
 #
 
 import gd, os, sys, subprocess, getopt, unicodedata, time, simplejson as json
@@ -50,9 +50,11 @@ def print_image(file):
   print_file = 'lp -d DYMO_LabelWriter_400_USB_1 -o landscape -o fitplot'.split() + [file]
   # print_file = 'lp -H test -d DYMO_LabelWriter_400_USB_1 -o landscape -o fitplot'.split() + [file]
 
-  opts, args = getopt.getopt(sys.argv[1:], "n") # "no print"
+  opts, args = getopt.getopt(sys.argv[1:], "nq") # n:"no print", q:"quick view"
   if opts and '-n' in opts[0]:
     print "Not executing command:",print_file
+  elif opts and '-q' in opts[0]:
+    subprocess.call(['qiv',file])
   else:
     subprocess.call(print_file)
 
@@ -72,7 +74,7 @@ def place(image,(x,y),item):
   im = gd.image((input["width"],input["height"]))
 
   x,y = 0,0 # since we are making a temporary image, set these to origin
-  
+
   # one pass calculation for ideal string size!
   size = 100
   p = im.get_bounding_rect(item["font"],size,0,(x,y),item["string"])
@@ -106,7 +108,7 @@ def main():
   except NameError: conf["badge"]["remove_accents"] = None
 
   os.environ["GDFONTPATH"] = conf["badge"]["font_path"]
- 
+
   im = gd.image((conf["badge"]["width"],conf["badge"]["height"]))
   white = im.colorAllocate(conf["badge"]["color"])
 

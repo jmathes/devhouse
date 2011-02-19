@@ -1,0 +1,3 @@
+*.pyc
+*~
+badge/completed/*.png

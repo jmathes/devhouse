@@ -1,0 +1,14 @@
+#!/bin/bash
+
+./print_badge -q <<END
+{
+  "first_name": "J Random",
+  "last_name": "Hacker",
+  "tags": "Python, Haskell, QR Codes in devhouse badge code, nerd-girl flirting",
+  "shdh_number": "42",
+  "key": "jrandom@gmail.com",
+  "badge_icons": null,
+  "attended_shdh_42": 1229171859,
+  "event_key": "shdh_42"
+}
+END
