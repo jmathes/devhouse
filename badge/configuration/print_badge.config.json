@@ -5,16 +5,18 @@
       "temporary_dir" : "/tmp/"
    },
    "badge" : {
-      "height" : 464,
-      "width" : 600,
+      "comment" : "dymo diskette labels have a printable area of 2.10in x 2.54in @ 300 dpi = 630 x 762px",
+      "height" : 630,
+      "width" : 760,
       "file" : "badge.png",
       "font_path" : "./configuration/fonts/",
       "remove_accents" : true,
       "color" : [255, 255, 255],
-      "design" : ["background", "qr_code", "sponsor", "shdh_number","first_name","last_name","tags"]
+      "design" : ["background", "sponsor", "qr_code",  "shdh_number","first_name","last_name","tags"]
    },
    "background" : {
       "file" : "./configuration/background.png",
+      "comment" : "configuration/background.png PNG 770x60 770x60+0+0 8-bit DirectClass 4.82KB 0.000u 0:00.000",
       "x" : 0,
       "y" : 0
    },
@@ -24,49 +26,50 @@
       "string" : "42",
       "font" : "MyriadPro-Bold.otf",
       "color" : [255, 255, 255],
-      "x" : 495,
+      "x" : 625,
       "y" : -5
    },
    "first_name" : {
-      "height" : 160,
-      "width" : 580,
+      "height" : 200,
+      "width" : 740,
       "string" : "",
-      "font" : "MyriadPro-Semibold.otf",
+      "font" : "MyriadPro-BoldCond.otf",
       "color" : [0, 0, 0],
-      "x" : 15,
+      "x" : 10,
       "y" : 70
    },
    "last_name" : {
-      "height" : 60,
-      "width" : 400,
+      "height" : 90,
+      "width" : 540,
       "string" : "",
-      "font" : "MyriadPro-Regular.otf",
+      "font" : "MyriadPro-Semibold.otf",
       "color" : [0, 0, 0],
-      "x" : 15,
+      "x" : 10,
       "y" : null
    },
    "tags" : {
-      "height" : 144,
-      "width" : 450,
       "string" : "",
       "wraptext" : 1,
-      "font" : "MyriadPro-BoldCond.otf",
+      "font" : "MyriadPro-Regular.otf",
       "color" : [0, 0, 0],
-      "x" : 15,
-      "y" : 300
+      "x" : 10,
+      "y" : 350,
+      "height" : 620-350,
+      "width" : 740-240
    },
    "sponsor" : {
       "file" : "./configuration/sponsor.png",
-      "height" : 74,
-      "width" : 130,
-      "x" : 460,
-      "y" : 240
+      "height" : 380-270,
+      "width" : 240,
+      "x" : 760-240,
+      "y" : 270
    },
    "qr_code" : {
+      "comment" : "qrencode --size=5 :: 88 char MECARD =~ PNG 185x185, 140 char MECARD =~ PNG 225x225",
       "string" : "",
-      "height" : 130,
-      "width" : 130,
-      "x" : 460,
-      "y" : 324
-   }
+      "height" : 240,
+      "width" : 240,
+      "x" : 760-240,
+      "y" : 390
+    }
 }

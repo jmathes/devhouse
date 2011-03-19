@@ -9,7 +9,7 @@ except ImportError:
 __all__ = ['make_scanner']
 
 NUMBER_RE = re.compile(
-    r'(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]?\d+)?',
+    r'(-?(?:0|[1-9]\d*))(\s*[-+]\s*\d+)?(\.\d+)?([eE][-+]?\d+)?',
     (re.VERBOSE | re.MULTILINE | re.DOTALL))
 
 def py_make_scanner(context):
@@ -45,9 +45,11 @@ def py_make_scanner(context):
 
         m = match_number(string, idx)
         if m is not None:
-            integer, frac, exp = m.groups()
+            integer, plusminus, frac, exp = m.groups()
             if frac or exp:
                 res = parse_float(integer + (frac or '') + (exp or ''))
+            elif plusminus:
+                res= eval(integer+plusminus);
             else:
                 res = parse_int(integer)
             return res, m.end()

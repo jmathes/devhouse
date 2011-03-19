@@ -1,18 +1,7 @@
 #!/bin/bash
 
 
-./print_badge -q <<END
-{
-  "first_name": "J Random",
-  "last_name": "Hacker",
-  "tags": "AppEngine",
-  "shdh_number": "42",
-  "key": "jrandom@gmail.com",
-  "badge_icons": null,
-  "attended_shdh_42": 1229171859,
-  "event_key": "shdh_42"
-}
-END
+echo == wrap two lines, more qr:
 
 ./print_badge -q  <<END
 {
@@ -26,12 +15,16 @@ END
   "event_key": "shdh_42"
 }
 END
+identify completed/*qrcode.png
+
+echo ''
+echo == wrap three lines, even more qr:
 
 ./print_badge -q  <<END
 {
   "first_name": "J Random",
   "last_name": "Hacker",
-  "tags": "Python, Haskell, QR Codes in devhouse badge code, nerd-girl flirting",
+  "tags": "Python, Haskell, QR Codes in devhouse badge code, schmoozing and flirting",
   "shdh_number": "42",
   "key": "jrandom@gmail.com",
   "badge_icons": null,
@@ -39,3 +32,4 @@ END
   "event_key": "shdh_42"
 }
 END
+identify completed/*qrcode.png

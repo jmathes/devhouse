@@ -47,7 +47,7 @@ def print_image(file):
   #       we could also use imageMagick to change DPI: 'convert foo.png -density 300 foo2.png'
   # Dymo note: the diskette labels we use have a printable area of 2.10in x 2.54in @ 300 dpi
   #            that's 630 x 762
-  print_file = 'lp -d DYMO_LabelWriter_400 -o landscape -o fitplot'.split() + [file]
+  print_file = 'lp -d DYMO-LabelWriter-400 -o landscape -o fitplot'.split() + [file]
   # print_file = 'lp -H test -d DYMO_LabelWriter_400_USB_1 -o landscape -o fitplot'.split() + [file]
 
 
@@ -173,7 +173,7 @@ def make_qrcode_png(qrfile, fname, lname, email, note):
     email,
     note.replace(';',','))
 
-  subprocess.call(['qrencode', '--size=3', '-m0', '-o', qrfile , mecard])
+  subprocess.call(['qrencode', '--size=5', '-m0', '-o', qrfile , mecard])
   print "qr.me: %d, %s\n" % (len(mecard), mecard)
   subprocess.call(['identify', qrfile])
 
