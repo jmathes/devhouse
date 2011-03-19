@@ -158,9 +158,13 @@ if __name__ == "__main__":
     if os.environ.get('INSECURE',False):
         reactor.listenTCP(10081, server.Site(sroot))
 
-#    reactor.listenSSL(10443, server.Site(sroot), \
-#        secure.ServerContextFactory(myKey='certs/server.pem', trustedCA='certs/certificate_authority/shdh-ca.pem'))
-        
+    print "just type ^D if you don't want to use the HTTPS port...it's optional..."
+    try:
+      reactor.listenSSL(10443, server.Site(sroot), \
+        secure.ServerContextFactory(myKey='certs/server.pem', trustedCA='certs/certificate_authority/shdh-ca.pem'))
+    except:
+      print "couldn't start SSL server...  missing certs/server.pem???\n python says:", sys.exc_info()    
+
     reactor.listenTCP(10080, server.Site(iroot)) 
     
     log.msg("It's a piece of cake to break a pretty snake. [SYSTEM ONLINE]")
