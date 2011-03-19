@@ -43,8 +43,13 @@ os.chdir(os.path.dirname(os.path.realpath(sys.argv[0])))
 CONFIGURATION_FILE = './configuration/print_badge.config.json'
 
 def print_image(file):
-  print_file = 'lp -d DYMO_LabelWriter_400_USB_1 -o landscape -o fitplot'.split() + [file]
+  # NOTE: we print with -o fitplot because the pngs we create are 72dpi but the printer is 300dpi.
+  #       we could also use imageMagick to change DPI: 'convert foo.png -density 300 foo2.png'
+  # Dymo note: the diskette labels we use have a printable area of 2.10in x 2.54in @ 300 dpi
+  #            that's 630 x 762
+  print_file = 'lp -d DYMO_LabelWriter_400 -o landscape -o fitplot'.split() + [file]
   # print_file = 'lp -H test -d DYMO_LabelWriter_400_USB_1 -o landscape -o fitplot'.split() + [file]
+
 
   opts, args = getopt.getopt(sys.argv[1:], "nq") # n:"no print", q:"quick view"
   if opts and '-n' in opts[0]:
@@ -93,7 +98,7 @@ def get_ideal_text_size(im,width, height, font, text):
 # Implement next:
 #   - Margins: top, bottom, left, right
 #   - Alignment: left, right, center
-def place(image,(x,y),item):
+def place_text(image,(x,y),item):
   input = {}
   input['x'],input['y'],input['wraptext'],(input['width'],input['height']) = x,y,0,image.size()
 
@@ -138,24 +143,40 @@ def place(image,(x,y),item):
 
 def make_qrcode_png(qrfile, fname, lname, email, note):
   #print "qrmake: %s %s %s %s %s" % (qrfile,fname,lname,email,note)
-  import vobject
-  j = vobject.vCard()
-  j.add('n')
-  j.n.value = vobject.vcard.Name(given=fname, family=lname)
-  j.add('fn')
-  j.fn.value = fname + " " + lname
-  j.add('email')
-  j.email.value = email
-  j.email.type_param = 'INTERNET'
-  j.add('note')
-  j.note.value = note
 
-  bad_text = j.serialize()
-  # android's barcode reader app doesn't like commas to be escaped
-  good_text = bad_text.replace("\\,", ",")
+  # vcard format is too verbose...
+  # especially the rigorous version created by python's vobject.vCard()
+  #import vobject
+  #j = vobject.vCard()
+  #j.add('n')
+  #j.n.value = vobject.vcard.Name(given=fname, family=lname)
+  #j.add('fn')
+  #j.fn.value = fname + " " + lname
+  #j.add('email')
+  #j.email.value = email
+  #j.email.type_param = 'INTERNET'
+  #j.add('note')
+  #j.note.value = note
 
-  subprocess.call(['qrencode', '--size=2', '-m0', '-o', qrfile , good_text])
-  # print "bad text:", bad_text, "\n", "good text:", good_text
+  #bad_text = j.serialize()
+  ## android's barcode reader app doesn't like commas to be escaped
+  #good_text = bad_text.replace("\\,", ",")
+
+  #print "qr.vc: %d, %s\n" % (len(good_text), good_text)
+
+  #subprocess.call(['qrencode', '--size=3', '-m0', '-o', qrfile , good_text])
+  #subprocess.call(['identify', qrfile])
+
+  mecard = "MECARD:N:%s,%s;EMAIL:%s;NOTE:%s;;" % (
+    lname.replace(',',''),
+    fname.replace(',',''),
+    email,
+    note.replace(';',','))
+
+  subprocess.call(['qrencode', '--size=3', '-m0', '-o', qrfile , mecard])
+  print "qr.me: %d, %s\n" % (len(mecard), mecard)
+  subprocess.call(['identify', qrfile])
+
 
 def main():
   configuration_file = open(CONFIGURATION_FILE)
@@ -172,16 +193,14 @@ def main():
 
   conf["badge"]["file"] = ''.join(('./completed/',card["key"],"_shdh",card["shdh_number"],'.png'))
 
-  try:
-    qrfile = './completed/%(key)s_shdh%(shdh_number)s.qrcode.png' % card
-    make_qrcode_png(qrfile,
-                    card['first_name'],
-                    card['last_name'],
-                    card['key'],
-                    'met @ SHDH %(shdh_number)s -- %(tags)s' % card)
-    conf["qr_code"]["file"] = qrfile
-  except : print "oh well, no qr code...  try: 'apt-get install qrencode python-vobject' \n python says:", sys.exc_info()
 
+  if 'qr_code' in conf["badge"]["design"]:
+    try:
+      qrfile = './completed/%(key)s_shdh%(shdh_number)s.qrcode.png' % card
+      make_qrcode_png(qrfile, card['first_name'], card['last_name'], card['key'],
+                              'SHDH %(shdh_number)s -- %(tags)s' % card)
+      conf["qr_code"]["file"] = qrfile
+    except : print "oh well, no qr code...  try: 'apt-get install qrencode' \n python says:", sys.exc_info()
 
   try: conf["badge"]["remove_accents"]
   except KeyError: conf["badge"]["remove_accents"] = None
@@ -207,8 +226,8 @@ def main():
       try:
         iw,ih = conf[item]["width"],conf[item]["height"]
         (tw,th) = temporary.size()
-        #### it would be better to preserve the aspect ratio
         if (tw > iw) or (th > ih):
+          #### it would be better to preserve the aspect ratio
           print "ooops, sloppy shrinking of image in progress..."
           temporary.copyResizedTo(im,(ix, iy),(0,0),(iw,ih))
         else:
@@ -218,7 +237,7 @@ def main():
     elif conf[item]["string"]:
       if conf["badge"]["remove_accents"]:
         conf[item]["string"] = unicodedata.normalize('NFKD', conf[item]["string"]).encode('ascii','ignore')
-      (x,y) = place(im,(x,y),conf[item])
+      (x,y) = place_text(im,(x,y),conf[item])
     else:
       print "ERROR"
 
