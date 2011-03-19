@@ -158,8 +158,8 @@ if __name__ == "__main__":
     if os.environ.get('INSECURE',False):
         reactor.listenTCP(10081, server.Site(sroot))
 
-    reactor.listenSSL(10443, server.Site(sroot), \
-        secure.ServerContextFactory(myKey='certs/server.pem', trustedCA='certs/certificate_authority/shdh-ca.pem'))
+#    reactor.listenSSL(10443, server.Site(sroot), \
+#        secure.ServerContextFactory(myKey='certs/server.pem', trustedCA='certs/certificate_authority/shdh-ca.pem'))
         
     reactor.listenTCP(10080, server.Site(iroot)) 
     
