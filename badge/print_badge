@@ -179,8 +179,7 @@ def make_qrcode_png(qrfile, fname, lname, email, note):
 
 
 def main():
-  configuration_file = open(CONFIGURATION_FILE)
-  conf = json.load(configuration_file)
+  conf = json.load(open(CONFIGURATION_FILE))
 
   # read card data in from stdin
   stdin = sys.stdin.read()
@@ -194,6 +193,7 @@ def main():
   conf["badge"]["file"] = ''.join(('./completed/',card["key"],"_shdh",card["shdh_number"],'.png'))
 
 
+  """
   if 'qr_code' in conf["badge"]["design"]:
     try:
       qrfile = './completed/%(key)s_shdh%(shdh_number)s.qrcode.png' % card
@@ -201,6 +201,7 @@ def main():
                               'SHDH %(shdh_number)s -- %(tags)s' % card)
       conf["qr_code"]["file"] = qrfile
     except : print "oh well, no qr code...  try: 'apt-get install qrencode' \n python says:", sys.exc_info()
+  """
 
   try: conf["badge"]["remove_accents"]
   except KeyError: conf["badge"]["remove_accents"] = None
@@ -221,6 +222,7 @@ def main():
     except KeyError: conf[item]["file"] = None
 
     if conf[item]["file"]:
+      print conf[item]["file"]
       temporary = gd.image(conf[item]["file"])
       ix,iy = conf[item]["x"],conf[item]["y"]
       try:
